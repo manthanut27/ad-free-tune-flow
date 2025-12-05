@@ -1,10 +1,15 @@
 import { Heart, Play, Clock } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 import { mockTracks, formatDuration } from "@/data/mockData";
 import TrackRow from "@/components/TrackRow";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const LikedSongs = () => {
   const { likedSongs, playTrack } = usePlayer();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const likedTracks = mockTracks.filter((track) => likedSongs.has(track.id));
   const totalDuration = likedTracks.reduce(
@@ -18,10 +23,30 @@ const LikedSongs = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center px-4">
+        <Heart className="w-20 h-20 text-subdued mb-6" />
+        <h2 className="text-3xl font-bold text-foreground mb-3">
+          Sign in to see your Liked Songs
+        </h2>
+        <p className="text-subdued mb-6 max-w-md">
+          Create an account or log in to save your favorite tracks and access them anywhere.
+        </p>
+        <Button
+          onClick={() => navigate("/auth")}
+          className="bg-foreground text-background hover:bg-foreground/90 font-bold px-8 py-6 text-base"
+        >
+          Log in
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-indigo-700/60 to-background p-6 pb-8">
+      <div className="bg-gradient-to-b from-indigo-700/60 to-surface-base -mt-[72px] pt-[72px] p-6 pb-8">
         <div className="flex items-end gap-6">
           <div className="w-56 h-56 rounded-md bg-gradient-to-br from-indigo-700 to-indigo-400 flex items-center justify-center shadow-2xl flex-shrink-0">
             <Heart className="w-20 h-20 text-foreground fill-foreground" />
