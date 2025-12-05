@@ -1,8 +1,11 @@
 import { mockPlaylists, recentlyPlayed } from "@/data/mockData";
 import PlaylistCard from "@/components/PlaylistCard";
 import RecentlyPlayedCard from "@/components/RecentlyPlayedCard";
+import { useAuth } from "@/context/AuthContext";
 
 const Home = () => {
+  const { user } = useAuth();
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -13,9 +16,9 @@ const Home = () => {
   return (
     <div className="p-6 pb-8 animate-fade-in">
       {/* Hero Section with Gradient */}
-      <div className="gradient-hero -m-6 mb-0 p-6 pb-8">
+      <div className="gradient-hero -m-6 -mt-[72px] pt-[72px] mb-0 p-6 pb-8">
         <h1 className="text-3xl font-bold text-foreground mb-6">
-          {getGreeting()}
+          {getGreeting()}{user ? `, ${user.user_metadata?.display_name || user.email?.split("@")[0]}` : ""}
         </h1>
 
         {/* Recently Played Grid */}

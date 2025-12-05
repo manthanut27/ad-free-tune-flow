@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { Track, mockTracks } from "@/data/mockData";
+import { useLikedSongs } from "@/hooks/useLikedSongs";
 
 interface PlayerContextType {
   currentTrack: Track | null;
@@ -35,9 +36,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [volume, setVolumeState] = useState(0.7);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
-  const [likedSongs, setLikedSongs] = useState<Set<string>>(
-    new Set(["1", "3", "5"])
-  );
+
+  // Use the database-backed liked songs hook
+  const { likedSongs, toggleLike, isLiked } = useLikedSongs();
 
   const playTrack = useCallback((track: Track, playlist?: Track[]) => {
     setCurrentTrack(track);
@@ -105,25 +106,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
       return "off";
     });
   }, []);
-
-  const toggleLike = useCallback((trackId: string) => {
-    setLikedSongs((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(trackId)) {
-        newSet.delete(trackId);
-      } else {
-        newSet.add(trackId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const isLiked = useCallback(
-    (trackId: string) => {
-      return likedSongs.has(trackId);
-    },
-    [likedSongs]
-  );
 
   const addToQueue = useCallback((track: Track) => {
     setQueue((prev) => [...prev, track]);

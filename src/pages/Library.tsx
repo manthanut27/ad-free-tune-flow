@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Heart, Plus, Grid, List } from "lucide-react";
-import { mockPlaylists, mockTracks } from "@/data/mockData";
+import { mockPlaylists } from "@/data/mockData";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 import PlaylistCard from "@/components/PlaylistCard";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type ViewMode = "grid" | "list";
 type FilterType = "all" | "playlists" | "artists";
@@ -13,9 +15,35 @@ const Library = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [filter, setFilter] = useState<FilterType>("all");
   const { likedSongs } = usePlayer();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const likedSongsCount = likedSongs.size;
+
+  if (!user) {
+    return (
+      <div className="p-6 animate-fade-in">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Your Library</h1>
+        <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+          <div className="w-20 h-20 rounded-full bg-surface-highlight flex items-center justify-center mb-6">
+            <Heart className="w-10 h-10 text-subdued" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">
+            Create your first playlist
+          </h2>
+          <p className="text-subdued mb-6 max-w-md">
+            Sign in to save your favorite songs and create playlists that sync across all your devices.
+          </p>
+          <Button
+            onClick={() => navigate("/auth")}
+            className="bg-foreground text-background hover:bg-foreground/90 font-bold px-8 py-6 text-base"
+          >
+            Log in
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 animate-fade-in">

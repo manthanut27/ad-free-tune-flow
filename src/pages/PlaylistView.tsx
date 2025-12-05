@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { Play, Clock, MoreHorizontal, Heart } from "lucide-react";
-import { mockPlaylists, formatDuration } from "@/data/mockData";
+import { mockPlaylists } from "@/data/mockData";
 import { usePlayer } from "@/context/PlayerContext";
 import TrackRow from "@/components/TrackRow";
 
@@ -43,7 +43,7 @@ const PlaylistView = () => {
   return (
     <div className="animate-fade-in">
       {/* Hero Section */}
-      <div className={`bg-gradient-to-b ${gradientColor} to-background p-6 pb-8`}>
+      <div className={`bg-gradient-to-b ${gradientColor} to-surface-base -mt-[72px] pt-[72px] p-6 pb-8`}>
         <div className="flex items-end gap-6">
           <img
             src={playlist.coverUrl}
