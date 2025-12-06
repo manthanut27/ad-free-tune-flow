@@ -1,4 +1,4 @@
-import { Home, Search, Library, Heart, Music } from "lucide-react";
+import { Home, Search, Library, Heart, Music, Upload } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { usePlaylistContext } from "@/context/PlaylistContext";
@@ -33,6 +33,16 @@ const Sidebar = () => {
             >
               <Search className="w-6 h-6" />
               <span className="font-medium">Search</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/upload"
+              className="flex items-center gap-4 px-3 py-2 rounded-md text-sidebar-foreground hover:text-foreground transition-colors"
+              activeClassName="text-foreground font-semibold"
+            >
+              <Upload className="w-6 h-6" />
+              <span className="font-medium">Upload</span>
             </NavLink>
           </li>
         </ul>

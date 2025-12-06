@@ -111,9 +111,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     setQueue((prev) => [...prev, track]);
   }, []);
 
-  // Simulate time progression
+  // Simulate time progression only for tracks without audioUrl
   React.useEffect(() => {
     if (!isPlaying || !currentTrack) return;
+    
+    // Skip simulation if track has real audio URL
+    if (currentTrack.audioUrl) return;
 
     const interval = setInterval(() => {
       setCurrentTime((prev) => {

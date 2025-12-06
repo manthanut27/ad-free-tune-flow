@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import {
   Play,
   Pause,
@@ -36,6 +37,76 @@ const Player = () => {
     toggleLike,
     isLiked,
   } = usePlayer();
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Handle audio playback
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+    
+    const audio = audioRef.current;
+    
+    if (currentTrack?.audioUrl) {
+      if (audio.src !== currentTrack.audioUrl) {
+        audio.src = currentTrack.audioUrl;
+        audio.load();
+      }
+      
+      if (isPlaying) {
+        audio.play().catch(console.error);
+      } else {
+        audio.pause();
+      }
+    } else {
+      audio.pause();
+      audio.src = "";
+    }
+  }, [currentTrack, isPlaying]);
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  // Sync audio time with player state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack?.audioUrl) return;
+
+    const handleTimeUpdate = () => {
+      seekTo(Math.floor(audio.currentTime));
+    };
+
+    const handleEnded = () => {
+      if (repeatMode === "one") {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        nextTrack();
+      }
+    };
+
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentTrack, repeatMode, nextTrack, seekTo]);
+
+  // Handle seek
+  const handleSeek = (value: number) => {
+    if (audioRef.current && currentTrack) {
+      const newTime = (value / 100) * currentTrack.duration;
+      audioRef.current.currentTime = newTime;
+      seekTo(newTime);
+    }
+  };
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
   const RepeatIcon = repeatMode === "one" ? Repeat1 : Repeat;
@@ -139,17 +210,13 @@ const Player = () => {
         {/* Progress Bar */}
         <div className="flex items-center gap-2 w-full">
           <span className="text-xs text-subdued w-10 text-right">
-            {formatDuration(currentTime)}
+            {formatDuration(Math.floor(currentTime))}
           </span>
           <Slider
             value={[currentTrack ? (currentTime / currentTrack.duration) * 100 : 0]}
             max={100}
             step={0.1}
-            onValueChange={([value]) => {
-              if (currentTrack) {
-                seekTo((value / 100) * currentTrack.duration);
-              }
-            }}
+            onValueChange={([value]) => handleSeek(value)}
             className="flex-1 cursor-pointer"
           />
           <span className="text-xs text-subdued w-10">
