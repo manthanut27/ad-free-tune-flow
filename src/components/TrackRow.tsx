@@ -1,16 +1,19 @@
-import { Play, Pause, Heart, MoreHorizontal } from "lucide-react";
+import { Play, Pause, Heart } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { Track, formatDuration } from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import AddToPlaylistMenu from "./AddToPlaylistMenu";
 
 interface TrackRowProps {
   track: Track;
   index: number;
   playlist?: Track[];
   showAlbum?: boolean;
+  playlistId?: string;
+  onRemove?: () => void;
 }
 
-const TrackRow = ({ track, index, playlist, showAlbum = true }: TrackRowProps) => {
+const TrackRow = ({ track, index, playlist, showAlbum = true, playlistId, onRemove }: TrackRowProps) => {
   const { currentTrack, isPlaying, playTrack, togglePlay, toggleLike, isLiked } =
     usePlayer();
 
@@ -95,7 +98,7 @@ const TrackRow = ({ track, index, playlist, showAlbum = true }: TrackRowProps) =
       )}
 
       {/* Actions & Duration */}
-      <div className="flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-3">
         <button
           onClick={() => toggleLike(track.id)}
           className={cn(
@@ -110,9 +113,7 @@ const TrackRow = ({ track, index, playlist, showAlbum = true }: TrackRowProps) =
         <span className="text-sm text-subdued tabular-nums">
           {formatDuration(track.duration)}
         </span>
-        <button className="opacity-0 group-hover:opacity-100 text-subdued hover:text-foreground transition-opacity">
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
+        <AddToPlaylistMenu trackId={track.id} />
       </div>
     </div>
   );

@@ -1,9 +1,15 @@
-import { Home, Search, Library, Plus, Heart } from "lucide-react";
+import { Home, Search, Library, Heart, Music } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { mockPlaylists } from "@/data/mockData";
 import { cn } from "@/lib/utils";
+import { usePlaylistContext } from "@/context/PlaylistContext";
+import { useAuth } from "@/context/AuthContext";
+import CreatePlaylistDialog from "./CreatePlaylistDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Sidebar = () => {
+  const { playlists, loading } = usePlaylistContext();
+  const { user } = useAuth();
+
   return (
     <aside className="w-[280px] flex-shrink-0 flex flex-col gap-2 p-2 h-full">
       {/* Main Navigation */}
@@ -44,9 +50,7 @@ const Sidebar = () => {
               <Library className="w-6 h-6" />
               <span className="font-medium">Your Library</span>
             </NavLink>
-            <button className="p-2 text-sidebar-foreground hover:text-foreground hover:bg-sidebar-accent rounded-full transition-all">
-              <Plus className="w-5 h-5" />
-            </button>
+            <CreatePlaylistDialog />
           </div>
         </div>
 
@@ -62,34 +66,60 @@ const Sidebar = () => {
             </div>
             <div className="min-w-0">
               <p className="font-medium text-foreground truncate">Liked Songs</p>
-              <p className="text-sm text-subdued truncate">
-                Playlist • 24 songs
-              </p>
+              <p className="text-sm text-subdued truncate">Playlist</p>
             </div>
           </NavLink>
 
-          {/* User Playlists */}
-          {mockPlaylists.slice(1).map((playlist) => (
-            <NavLink
-              key={playlist.id}
-              to={`/playlist/${playlist.id}`}
-              className="flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent transition-colors group"
-            >
-              <img
-                src={playlist.coverUrl}
-                alt={playlist.name}
-                className="w-12 h-12 rounded-md object-cover flex-shrink-0"
-              />
-              <div className="min-w-0">
-                <p className="font-medium text-foreground truncate">
-                  {playlist.name}
-                </p>
-                <p className="text-sm text-subdued truncate">
-                  Playlist • {playlist.createdBy}
-                </p>
-              </div>
-            </NavLink>
-          ))}
+          {/* User Playlists from Database */}
+          {loading ? (
+            <div className="space-y-2 mt-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 p-2">
+                  <Skeleton className="w-12 h-12 rounded-md" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            playlists.map((playlist) => (
+              <NavLink
+                key={playlist.id}
+                to={`/playlist/${playlist.id}`}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-sidebar-accent transition-colors group"
+              >
+                {playlist.cover_url ? (
+                  <img
+                    src={playlist.cover_url}
+                    alt={playlist.name}
+                    className="w-12 h-12 rounded-md object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-md bg-surface-highlight flex items-center justify-center flex-shrink-0">
+                    <Music className="w-5 h-5 text-subdued" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground truncate">
+                    {playlist.name}
+                  </p>
+                  <p className="text-sm text-subdued truncate">
+                    Playlist • {playlist.tracks.length} songs
+                  </p>
+                </div>
+              </NavLink>
+            ))
+          )}
+
+          {!loading && !user && (
+            <div className="p-4 text-center">
+              <p className="text-sm text-subdued">
+                Sign in to create playlists
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </aside>
