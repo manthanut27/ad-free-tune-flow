@@ -1,21 +1,23 @@
 import { useState } from "react";
-import { Heart, Plus, Grid, List } from "lucide-react";
-import { mockPlaylists } from "@/data/mockData";
+import { Heart, Grid, List, Music } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
-import PlaylistCard from "@/components/PlaylistCard";
+import { usePlaylistContext } from "@/context/PlaylistContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import CreatePlaylistDialog from "@/components/CreatePlaylistDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ViewMode = "grid" | "list";
-type FilterType = "all" | "playlists" | "artists";
+type FilterType = "all" | "playlists";
 
 const Library = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [filter, setFilter] = useState<FilterType>("all");
   const { likedSongs } = usePlayer();
   const { user } = useAuth();
+  const { playlists, loading } = usePlaylistContext();
   const navigate = useNavigate();
 
   const likedSongsCount = likedSongs.size;
@@ -51,9 +53,13 @@ const Library = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-foreground">Your Library</h1>
         <div className="flex items-center gap-2">
-          <button className="p-2 text-subdued hover:text-foreground hover:bg-surface-highlight rounded-full transition-all">
-            <Plus className="w-5 h-5" />
-          </button>
+          <CreatePlaylistDialog
+            trigger={
+              <button className="p-2 text-subdued hover:text-foreground hover:bg-surface-highlight rounded-full transition-all">
+                <Music className="w-5 h-5" />
+              </button>
+            }
+          />
           <button
             onClick={() => setViewMode("list")}
             className={cn(
@@ -81,7 +87,7 @@ const Library = () => {
 
       {/* Filters */}
       <div className="flex gap-2 mb-6">
-        {(["all", "playlists", "artists"] as FilterType[]).map((f) => (
+        {(["all", "playlists"] as FilterType[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -112,25 +118,80 @@ const Library = () => {
       </div>
 
       {/* Playlists */}
-      {viewMode === "grid" ? (
+      {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-          {mockPlaylists.map((playlist) => (
-            <PlaylistCard key={playlist.id} playlist={playlist} />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="aspect-square rounded-md" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          ))}
+        </div>
+      ) : playlists.length === 0 ? (
+        <div className="text-center py-12">
+          <Music className="w-16 h-16 text-subdued mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            Create your first playlist
+          </h3>
+          <p className="text-subdued mb-6">
+            Organize your favorite songs into playlists.
+          </p>
+          <CreatePlaylistDialog
+            trigger={
+              <Button className="bg-foreground text-background hover:bg-foreground/90">
+                Create Playlist
+              </Button>
+            }
+          />
+        </div>
+      ) : viewMode === "grid" ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+          {playlists.map((playlist) => (
+            <div
+              key={playlist.id}
+              onClick={() => navigate(`/playlist/${playlist.id}`)}
+              className="group p-4 rounded-md bg-surface-highlight hover:bg-surface-elevated transition-colors cursor-pointer"
+            >
+              {playlist.cover_url ? (
+                <img
+                  src={playlist.cover_url}
+                  alt={playlist.name}
+                  className="aspect-square rounded-md object-cover shadow-lg mb-4"
+                />
+              ) : (
+                <div className="aspect-square rounded-md bg-surface-base flex items-center justify-center shadow-lg mb-4">
+                  <Music className="w-12 h-12 text-subdued" />
+                </div>
+              )}
+              <p className="font-medium text-foreground truncate">
+                {playlist.name}
+              </p>
+              <p className="text-sm text-subdued truncate">
+                {playlist.tracks.length} songs
+              </p>
+            </div>
           ))}
         </div>
       ) : (
         <div className="space-y-2">
-          {mockPlaylists.map((playlist) => (
+          {playlists.map((playlist) => (
             <div
               key={playlist.id}
               onClick={() => navigate(`/playlist/${playlist.id}`)}
               className="flex items-center gap-4 p-3 rounded-md hover:bg-surface-highlight cursor-pointer transition-colors"
             >
-              <img
-                src={playlist.coverUrl}
-                alt={playlist.name}
-                className="w-12 h-12 rounded object-cover"
-              />
+              {playlist.cover_url ? (
+                <img
+                  src={playlist.cover_url}
+                  alt={playlist.name}
+                  className="w-12 h-12 rounded object-cover"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded bg-surface-highlight flex items-center justify-center">
+                  <Music className="w-5 h-5 text-subdued" />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground truncate">
                   {playlist.name}

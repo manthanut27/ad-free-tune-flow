@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { PlayerProvider } from "@/context/PlayerContext";
+import { PlaylistProvider } from "@/context/PlaylistContext";
 import MainLayout from "@/layouts/MainLayout";
 import Home from "@/pages/Home";
 import Search from "@/pages/Search";
@@ -20,23 +21,25 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <PlayerProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/library" element={<Library />} />
-                <Route path="/library/liked" element={<LikedSongs />} />
-                <Route path="/playlist/:id" element={<PlaylistView />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </PlayerProvider>
+        <PlaylistProvider>
+          <PlayerProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/library" element={<Library />} />
+                  <Route path="/library/liked" element={<LikedSongs />} />
+                  <Route path="/playlist/:id" element={<PlaylistView />} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </PlayerProvider>
+        </PlaylistProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
