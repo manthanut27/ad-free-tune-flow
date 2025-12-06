@@ -127,6 +127,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tracks: {
+        Row: {
+          album: string | null
+          artist: string
+          audio_url: string
+          cover_url: string | null
+          created_at: string
+          duration: number
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          album?: string | null
+          artist: string
+          audio_url: string
+          cover_url?: string | null
+          created_at?: string
+          duration?: number
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          album?: string | null
+          artist?: string
+          audio_url?: string
+          cover_url?: string | null
+          created_at?: string
+          duration?: number
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

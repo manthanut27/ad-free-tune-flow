@@ -12,6 +12,7 @@ import Search from "@/pages/Search";
 import Library from "@/pages/Library";
 import LikedSongs from "@/pages/LikedSongs";
 import PlaylistView from "@/pages/PlaylistView";
+import Upload from "@/pages/Upload";
 import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
                   <Route path="/library" element={<Library />} />
                   <Route path="/library/liked" element={<LikedSongs />} />
                   <Route path="/playlist/:id" element={<PlaylistView />} />
+                  <Route path="/upload" element={<Upload />} />
                 </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
