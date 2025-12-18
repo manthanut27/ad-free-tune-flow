@@ -129,6 +129,112 @@ export const useTracks = () => {
     }
   };
 
+  const addTrackFromUrl = async (
+    audioUrl: string,
+    coverFile: File | null,
+    metadata: { title: string; artist: string; album?: string },
+    storageMode: "stream" | "download"
+  ) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add tracks",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    setUploading(true);
+
+    try {
+      let finalAudioUrl = audioUrl;
+
+      // If download mode, fetch the audio and upload to storage
+      if (storageMode === "download") {
+        const response = await fetch(audioUrl);
+        if (!response.ok) {
+          throw new Error("Failed to fetch audio from URL");
+        }
+        
+        const blob = await response.blob();
+        const contentType = response.headers.get("content-type") || "audio/mpeg";
+        const extension = contentType.includes("wav") ? "wav" : 
+                         contentType.includes("ogg") ? "ogg" : 
+                         contentType.includes("m4a") || contentType.includes("mp4") ? "m4a" : "mp3";
+        
+        const fileName = `${user.id}/${Date.now()}-${metadata.title.replace(/[^a-zA-Z0-9]/g, "_")}.${extension}`;
+        
+        const { data: audioData, error: audioError } = await supabase.storage
+          .from("song")
+          .upload(fileName, blob, { contentType });
+
+        if (audioError) throw audioError;
+
+        const { data: audioUrlData } = supabase.storage
+          .from("song")
+          .getPublicUrl(audioData.path);
+
+        finalAudioUrl = audioUrlData.publicUrl;
+      }
+
+      // Upload cover if provided
+      let coverUrl: string | null = null;
+      if (coverFile) {
+        const coverFileName = `${user.id}/${Date.now()}-${coverFile.name}`;
+        const { data: coverData, error: coverError } = await supabase.storage
+          .from("album-covers")
+          .upload(coverFileName, coverFile);
+
+        if (coverError) throw coverError;
+
+        const { data: coverUrlData } = supabase.storage
+          .from("album-covers")
+          .getPublicUrl(coverData.path);
+
+        coverUrl = coverUrlData.publicUrl;
+      }
+
+      // Get audio duration from URL
+      const duration = await getAudioDurationFromUrl(audioUrl);
+
+      // Insert track record
+      const { data: trackData, error: trackError } = await supabase
+        .from("tracks")
+        .insert({
+          user_id: user.id,
+          title: metadata.title,
+          artist: metadata.artist,
+          album: metadata.album || null,
+          duration: Math.round(duration),
+          cover_url: coverUrl,
+          audio_url: finalAudioUrl,
+        })
+        .select()
+        .single();
+
+      if (trackError) throw trackError;
+
+      setTracks((prev) => [trackData, ...prev]);
+
+      toast({
+        title: "Track added",
+        description: `"${metadata.title}" has been added successfully`,
+      });
+
+      return trackData;
+    } catch (error) {
+      console.error("Error adding track from URL:", error);
+      toast({
+        title: "Failed to add track",
+        description: error instanceof Error ? error.message : "Please check the URL and try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const deleteTrack = async (trackId: string) => {
     if (!user) return false;
 
@@ -168,12 +274,13 @@ export const useTracks = () => {
     loading,
     uploading,
     uploadTrack,
+    addTrackFromUrl,
     deleteTrack,
     refetch: fetchTracks,
   };
 };
 
-// Helper function to get audio duration
+// Helper function to get audio duration from File
 const getAudioDuration = (file: File): Promise<number> => {
   return new Promise((resolve) => {
     const audio = new Audio();
@@ -184,5 +291,20 @@ const getAudioDuration = (file: File): Promise<number> => {
       resolve(0);
     });
     audio.src = URL.createObjectURL(file);
+  });
+};
+
+// Helper function to get audio duration from URL
+const getAudioDurationFromUrl = (url: string): Promise<number> => {
+  return new Promise((resolve) => {
+    const audio = new Audio();
+    audio.addEventListener("loadedmetadata", () => {
+      resolve(audio.duration);
+    });
+    audio.addEventListener("error", () => {
+      resolve(0);
+    });
+    audio.crossOrigin = "anonymous";
+    audio.src = url;
   });
 };
